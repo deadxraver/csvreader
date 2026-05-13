@@ -29,6 +29,7 @@ enum parse_result {
   PARSE_ILLEGCHAR,
   PARSE_NULLARG,
   PARSE_UNEXPECTED_EOF,
+  PARSE_CELL_NOT_FOUND,
 };
 
 struct operand {
