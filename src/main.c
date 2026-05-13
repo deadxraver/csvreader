@@ -38,7 +38,9 @@ int main(int argc, char* argv[]) {
     ret = print_err(table.result);
     goto end;
   }
-  // TODO: print
+
+  print_table(&table);
+
   destroy_table(&table);
 end:
   if (csvtext != NULL)

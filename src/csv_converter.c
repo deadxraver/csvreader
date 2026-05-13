@@ -32,7 +32,7 @@ typedef bool (*sep_typedef) (char);
 
 static int parse_number(const char* str, sep_typedef sep) {
   int ret = 0;
-  for (const char* s = str; !sep(*s) && *s != 0; ++s) {
+  for (const char* s = str; !sep(*s) && *s != 0 && *s != '\n'; ++s) {
     if (is_digit(*s)) {
       ret *= 10;
       ret += *s - '0';
@@ -202,16 +202,17 @@ static void set_contents(const char* text, struct table* table) {
   }
 
   for (idx = rows_begin; text[idx] != 0; ++idx) {
-  break_while:
+    size_t col_no = 0;
     while (text[idx] != '\n') {
 
       while(!is_separator(text[idx++])) {
-        if (text[idx] == 0 || text[idx] == '\n') {
+        if (text[idx] == 0)
+          return;
+        if (text[idx] == '\n') {
           goto break_while;
         }
       }
 
-      size_t col_no = 0;
       if (is_digit(text[idx])) {
         table->cells[row_no][col_no].ct = CELL_NUMBER;
         table->cells[row_no][col_no].number = parse_number(text + idx, is_separator);
@@ -229,6 +230,8 @@ static void set_contents(const char* text, struct table* table) {
         return;
       }
     }
+  break_while:
+    ++row_no;
   }
 
 }
@@ -288,6 +291,28 @@ void destroy_table(struct table* table) {
     free(table->row_numbers);
     table->row_numbers = NULL;
     table->rows = 0;
+  }
+}
+
+void print_table(const struct table* table) {
+  for (size_t i = 0; i < table->columns; ++i) {
+    printf(",%s", table->column_names[i]);
+  }
+  printf("\n");
+  for (size_t i = 0; i < table->rows; ++i) {
+    printf("%d", table->row_numbers[i]);
+    for (size_t j = 0; j < table->columns; ++j) {
+      if (table->cells[i][j].ct == CELL_NUMBER) {
+        printf(",%d", table->cells[i][j].number);
+      }
+      else if (table->cells[i][j].ct == CELL_OPERATION) {
+        printf(",OP");
+      }
+      else {
+        printf(",UNKNOWN");
+      }
+    }
+    printf("\n");
   }
 }
 
