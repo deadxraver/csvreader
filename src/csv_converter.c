@@ -294,6 +294,59 @@ void destroy_table(struct table* table) {
   }
 }
 
+static void process_cell(struct cell* cell) {
+  if (cell->ct == CELL_NUMBER)
+    return;
+  int n1, n2;
+  struct operand* op1 = &cell->oc.op1;
+  struct operand* op2 = &cell->oc.op2;
+  enum operation oper = cell->oc.operation;
+
+  if (op1->ot == OT_NUMBER) {
+    n1 = op1->number;
+  }
+  else {
+    process_cell(op1->link);
+    n1 = op1->link->number;
+  }
+
+  if (op2->ot == OT_NUMBER) {
+    n2 = op2->number;
+  }
+  else {
+    process_cell(op2->link);
+    n2 = op2->link->number;
+  }
+
+  if (cell->ct == CELL_NUMBER)
+    return;
+  cell->ct = CELL_NUMBER;
+
+  if (oper == OP_PLUS) {
+    cell->number = n1 + n2;
+  }
+  else if (oper == OP_MINUS) {
+    cell->number = n1 - n2;
+  }
+  else if (oper == OP_MUL) {
+    cell->number = n1 * n2;
+  }
+  else if (oper == OP_DIV) {
+    cell->number = n1 / n2;
+  }
+
+}
+
+void process_table(struct table* table) {
+  for (size_t i = 0; i < table->rows; ++i) {
+    for (size_t j = 0; j < table->columns; ++j) {
+      if (table->cells[i][j].ct == CELL_NUMBER)
+        continue;
+      process_cell(&table->cells[i][j]);
+    }
+  }
+}
+
 void print_table(const struct table* table) {
   for (size_t i = 0; i < table->columns; ++i) {
     printf(",%s", table->column_names[i]);

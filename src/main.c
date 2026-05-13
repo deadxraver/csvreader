@@ -39,6 +39,8 @@ int main(int argc, char* argv[]) {
     goto end;
   }
 
+  process_table(&table);
+
   print_table(&table);
 
   destroy_table(&table);
