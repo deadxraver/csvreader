@@ -28,6 +28,17 @@ static inline bool is_separator(char c) {
   return c == ',';
 }
 
+static int parse_number(char* str, char sep) {
+  int ret = 0;
+  for (char* s = str; *s != sep; ++s) {
+    if (is_digit(*s)) {
+      ret *= 10;
+      ret += *s - '0';
+    }
+  }
+  return ret;
+}
+
 static void set_header(char* text, struct table* table) {
   size_t idx = 0;
   char buf[128];
@@ -71,6 +82,31 @@ static void set_header(char* text, struct table* table) {
   }
 }
 
+static void set_row_numbers(char* text, struct table* table) {
+  size_t idx;
+  int number = 0;
+  size_t row_no = 0;
+  size_t rows_begin;
+
+  for (rows_begin = 0; text[rows_begin] != '\n'; ++rows_begin);
+  ++rows_begin; // skip header
+
+  for (idx = rows_begin; text[idx] != 0; ++idx) {
+    if (is_digit(text[idx])) {
+      ++table->rows;
+      while(text[++idx] != '\n');
+    }
+  }
+
+  table->row_numbers = (int*) malloc(sizeof(int) * table->rows);
+  for (idx = rows_begin; text[idx] != 0; ++idx) {
+    if (is_digit(text[idx])) {
+      table->row_numbers[row_no++] = parse_number(text + idx, ',');
+      while(text[++idx] != '\n');
+    }
+  }
+}
+
 struct table parse_csv(char* text) {
   struct table ret = (struct table){0};
   size_t idx = 0;
@@ -79,7 +115,12 @@ struct table parse_csv(char* text) {
     ret.result = PARSE_NULLARG;
     goto end;
   }
+
   set_header(text, &ret);
+  if (ret.result)
+    goto end;
+
+  set_row_numbers(text, &ret);
   if (ret.result)
     goto end;
 
@@ -106,6 +147,14 @@ void destroy_table(struct table* table) {
     table->columns = 0;
     free(table->column_names);
     table->column_names = NULL;
+  }
+  if (table->row_numbers) {
+    for (size_t i = 0; i < table->rows; ++i) { // TODO: remove
+      printf("%d\n", table->row_numbers[i]);
+    }
+    free(table->row_numbers);
+    table->row_numbers = NULL;
+    table->rows = 0;
   }
   // TODO:
 }
