@@ -258,6 +258,8 @@ struct table parse_csv(char* text) {
     goto end;
 
 end:
+  if (ret.result)
+    destroy_table(&ret);
   return ret;
 }
 
