@@ -33,7 +33,16 @@ int main(int argc, char* argv[]) {
     ret = EIO;
     goto end;
   }
+
   csvtext[sz] = 0;
+
+  for (char* c = csvtext; *c != 0; ++c) {
+    if (*c == '\n' && c[1] == '\n') {
+      c[1] = 0;
+      break;
+    }
+  }
+
   if ((table = parse_csv(csvtext)).result) {
     ret = print_err(table.result);
     goto end;
