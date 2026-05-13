@@ -27,6 +27,7 @@ enum parse_result {
   PARSE_OK = 0,
   PARSE_WRFMT,
   PARSE_ILLEGCHAR,
+  PARSE_NULLARG,
 };
 
 struct operand {
@@ -63,5 +64,7 @@ struct table {
 struct table parse_csv(char* text);
 
 void destroy_table(struct table* table);
+
+int print_err(enum parse_result result_code);
 
 #endif //! _CSV_CONVERTER_H

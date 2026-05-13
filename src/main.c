@@ -35,8 +35,7 @@ int main(int argc, char* argv[]) {
   }
   csvtext[sz] = 0;
   if ((table = parse_csv(csvtext)).result) {
-    fprintf(stderr, "Failed to parse table\n");
-    ret = table.result;
+    ret = print_err(table.result);
     goto end;
   }
   // TODO: print
