@@ -28,6 +28,7 @@ enum parse_result {
   PARSE_WRFMT,
   PARSE_ILLEGCHAR,
   PARSE_NULLARG,
+  PARSE_UNEXPECTED_EOF,
 };
 
 struct operand {

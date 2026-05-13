@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <malloc.h>
+#include <string.h>
 
 static enum operation is_operator(char c) {
   if (c == '+')
@@ -28,11 +29,46 @@ static inline bool is_separator(char c) {
 }
 
 static void set_header(char* text, struct table* table) {
+  size_t idx = 0;
+  char buf[128];
+  size_t buf_idx = 0;
+  size_t colmn_no = 0;
+
   if (!is_separator(text[0])) {
     table->result = PARSE_WRFMT;
     return;
   }
-  // TODO:
+  memset(buf, 0, sizeof(buf));
+
+  for (idx = 1;; ++idx) {
+    if (is_separator(text[idx]) || text[idx] == '\n') {
+      ++table->columns;
+    }
+    if (text[idx] == '\n')
+      break;
+    if (text[idx] == 0) {
+      table->result = PARSE_UNEXPECTED_EOF;
+      return;
+    }
+  }
+
+  table->column_names = (char**) malloc(table->columns * sizeof(char*));
+  memset(table->column_names, 0, table->columns * sizeof(char*));
+
+  for (idx = 1;; ++idx) {
+    if (is_separator(text[idx]) || text[idx] == '\n') {
+      size_t sz = strlen(buf) + 1;
+      table->column_names[colmn_no] = (char*) malloc(sizeof(char) * sz);
+      table->column_names[colmn_no][sz - 1] = 0;
+      strcpy(table->column_names[colmn_no++], buf);
+      memset(buf, 0, sizeof(buf));
+      buf_idx = 0;
+      if (text[idx] == '\n')
+        break;
+      continue;
+    }
+    buf[buf_idx++] = text[idx];
+  }
 }
 
 struct table parse_csv(char* text) {
@@ -59,6 +95,18 @@ end:
 void destroy_table(struct table* table) {
   if (table == NULL)
     return;
+  if (table->column_names) {
+    for (size_t i = 0; i < table->columns; ++i) {
+      if (table->column_names[i]) {
+        printf("%s\n", table->column_names[i]); // TODO: remove
+        free(table->column_names[i]);
+        table->column_names[i] = NULL;
+      }
+    }
+    table->columns = 0;
+    free(table->column_names);
+    table->column_names = NULL;
+  }
   // TODO:
 }
 
@@ -71,11 +119,15 @@ int print_err(enum parse_result result_code) {
   }
   if (result_code == PARSE_WRFMT) {
     fprintf(stderr, "Illegal character\n");
-    return EINVAL;
+    return EPERM;
   }
   if (result_code == PARSE_NULLARG) {
     fprintf(stderr, "String arg is NULL\n");
     return EINVAL;
+  }
+  if (result_code == PARSE_UNEXPECTED_EOF) {
+    fprintf(stderr, "Unexpected EOF in file\n");
+    return EIO;
   }
   fprintf(stderr, "Unknown error code: %d\n", result_code);
   return EINVAL;
