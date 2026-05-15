@@ -3,11 +3,12 @@
 #include <malloc.h>
 
 #include "csv_converter.h"
+#include "table_processor.h"
 
 int main(int argc, char* argv[]) {
   FILE* fd = NULL;
   int ret = 0;
-  struct table table;
+  struct table table = {0};
   char* csvtext = NULL;
 
   if (argc != 2) {
@@ -49,16 +50,19 @@ int main(int argc, char* argv[]) {
   }
 
   if ((table = parse_csv(csvtext)).result) {
-    ret = print_err(table.result);
+    ret = parse_print_err(table.result);
     goto end;
   }
 
-  process_table(&table);
+  if (ret = process_table(&table)) {
+    ret = process_print_err(ret);
+    goto end;
+  }
 
   print_table(&table);
 
-  destroy_table(&table);
 end:
+  destroy_table(&table);
   if (csvtext != NULL)
     free(csvtext);
   csvtext = NULL;

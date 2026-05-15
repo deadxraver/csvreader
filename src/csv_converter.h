@@ -67,10 +67,6 @@ struct table parse_csv(char* text);
 
 void destroy_table(struct table* table);
 
-void process_table(struct table* table);
-
-void print_table(const struct table* table);
-
-int print_err(enum parse_result result_code);
+int parse_print_err(enum parse_result result_code);
 
 #endif //! _CSV_CONVERTER_H
