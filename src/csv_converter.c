@@ -16,6 +16,10 @@ static enum operation is_operator(char c) {
   return OP_UNKNOWN;
 }
 
+static inline bool is_operator_b(char c) {
+  return (bool) is_operator(c);
+}
+
 static inline bool is_digit(char c) {
   return c >= '0' && c <= '9';
 }
@@ -66,7 +70,7 @@ static struct operation_cell parse_operation(const char* text, struct table* tab
   if (is_digit(text[idx])) {
     ret.op1 = (struct operand) {
       .ot = OT_NUMBER,
-      .number = parse_number(text + idx, (sep_typedef)is_operator),
+      .number = parse_number(text + idx, (sep_typedef)is_operator_b),
     };
   }
   else if (is_letter(text[idx])) {
@@ -75,7 +79,7 @@ static struct operation_cell parse_operation(const char* text, struct table* tab
     }
     ret.op1 = (struct operand) {
       .ot = OT_LINK,
-      .link = find_cell(table, buf, parse_number(text + idx, (sep_typedef)is_operator)),
+      .link = find_cell(table, buf, parse_number(text + idx, (sep_typedef)is_operator_b)),
     };
     if (ret.op1.link == NULL) {
       table->result = PARSE_CELL_NOT_FOUND;
